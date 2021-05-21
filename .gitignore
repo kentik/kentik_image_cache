@@ -1,0 +1,16 @@
+*.pyc
+*.egg
+*.egg-info
+*.iml
+.cache
+.coverage
+.idea
+.tox
+.eggs
+build
+pkgbuild
+venv
+htmlcov
+dist
+.pytest_cache/
+tests/data/

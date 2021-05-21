@@ -1,0 +1,82 @@
+---
+name: kentik-image-cache
+
+# Run this workflow all on pushes to master
+on:
+  pull_request:
+    paths: 
+    - '**'
+    - '.github/workflows/kentik-image-cache.yml'
+  push:
+    paths: 
+    - '**'
+    - '.github/workflows/kentik-image-cache.yml'
+    tags:
+      - "v[0-9].[0-9]+.[0-9]+"
+
+jobs:
+  python-versions-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - id: set-matrix
+      run: echo "::set-output name=matrix::{\"python-version\":['3.8', '3.9']}"
+
+  # Static Analysis of the SDK and its code
+  # Stuff like linters, etc.
+  code-tests:
+    needs: python-versions-setup
+    runs-on: ubuntu-latest
+    strategy: 
+      matrix: ${{fromJson(needs.python-versions-setup.outputs.matrix)}}
+
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      - name: Prepare python env
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Install requirements
+        working-directory: .
+        run: pip3 install -r requirements.txt
+      - name: PyTest
+        working-directory: .
+        run: python3 setup.py pytest
+      - name: Black
+        uses: piotrpawlaczek/python-blacken@release/stable
+        with:
+          path: '.'
+          line-length: '120'
+      - name: PyLint
+        working-directory: .
+        run: python3 setup.py pylint
+      - name: Mypy
+        working-directory: .
+        run: python3 setup.py mypy
+
+  build:
+    needs: python-versions-setup
+    runs-on: ubuntu-latest
+    strategy: 
+      matrix: ${{fromJson(needs.python-versions-setup.outputs.matrix)}}
+    steps:
+      - name: (HELPER) Checkout Code
+        uses: actions/checkout@v2
+      - name: Prepare python env
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Build package
+        working-directory: .
+        run: |
+          pip3 install -r requirements.txt
+          python3 setup.py build sdist bdist_wheel
+      - name: Archive code
+        uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.gz
+          retention-days: 5

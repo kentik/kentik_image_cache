@@ -1,0 +1,4 @@
+aiofiles
+fastapi[all]
+kentik_api
+uvicorn[standard]
