@@ -1,4 +1,5 @@
 aiofiles
 fastapi[all]
 kentik_api
+pydantic
 uvicorn[standard]

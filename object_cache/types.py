@@ -2,23 +2,15 @@ from enum import Enum
 
 
 class EntryStatus(Enum):
-    ACTIVE = 'active'
-    PENDING = 'pending'
-    NOT_FOUND = 'not found'
+    ACTIVE = "active"
+    PENDING = "pending"
 
 
 class CreationStatus(Enum):
-    CREATED = 'created'
-    EXISTING = 'existing'
+    CREATED = "created"
+    EXISTING = "existing"
 
 
 class ActivationStatus(Enum):
-    SUCCESS = 'success'
-    FAILED = 'failed'
-
-
-class CacheEntryType(Enum):
-    REQUEST = 'api_request'
-    ERROR_MSG = 'api_error'
-    IMAGE = 'image'
-    INVALID = 'invalid'
+    SUCCESS = "success"
+    FAILED = "failed"

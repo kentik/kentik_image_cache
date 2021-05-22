@@ -50,9 +50,6 @@ jobs:
         with:
           path: '.'
           line-length: '120'
-      - name: PyLint
-        working-directory: .
-        run: python3 setup.py pylint
       - name: Mypy
         working-directory: .
         run: python3 setup.py mypy
@@ -60,7 +57,7 @@ jobs:
   build:
     needs: python-versions-setup
     runs-on: ubuntu-latest
-    strategy: 
+    strategy:
       matrix: ${{fromJson(needs.python-versions-setup.outputs.matrix)}}
     steps:
       - name: (HELPER) Checkout Code
