@@ -16,6 +16,13 @@ class CacheEntryType(Enum):
 
 
 class CacheEntry:
+    """
+    Class representing entries in the ObjectCache.
+    Objects of this class are constructed and returned in the ObjectCache.get_entry method.
+    CacheEntry stores type of data it contains in the first line of the content.
+    The 'data' method returns stored data without the line identifying type.
+    """
+
     def __init__(
         self,
         status=EntryStatus.PENDING,
@@ -65,6 +72,8 @@ class CacheEntry:
         return self._path
 
     def rename(self, name: Path) -> None:
+        """Rename the file representing the entry to new name and re-open it"""
+
         if self._handle is None:
             raise RuntimeError(f"Attempt to rename null handle to {name}")
         log.debug("Renaming %s to %s", self._handle.name, name)
@@ -74,6 +83,8 @@ class CacheEntry:
         self._path = Path(self._handle.name)
 
     def write(self, entry_type: CacheEntryType, data: Any) -> None:
+        """Write data of specified type into the file representing the entry"""
+
         with self.path.open("wb") as f:
             self._type = entry_type
             f.write(bytes(f"{self._type.value}\n".encode()))

@@ -23,15 +23,15 @@ The application has following configurable parameters which can be either provid
   
   | parameter | required | purpose | default value |
   | :---------| :------: | :------ | :------------ | 
-  | kt_auth_email | yes | Authentication to Kentik API | |
-  | kt_auth_token | yes | Authentication to Kentik API | |
-  | kentik_api_url | no | URL of Kentik API service | https://api.kentik.com/api/v5 |
-  | kentik_api_retries  | no | Number of retries on transient failures | 3 |
-  | kentik_api_timeout | no | Timeout for requests to Kentik API | 60 seconds |
-  | default_ttl| no | Default cache entry lifetime | 300 seconds |
-  | status_poll_period  | no | Interval for polling for completion of cache entries | 3 seconds |
-  | cache_path  | yes | Directory for storing cached content | |
-  | cache_maintenance_period  | no | Interval for periodic cache pruning | 60 seconds |
+  | KT_AUTH_EMAIL | yes | Authentication to Kentik API | |
+  | KT_AUTH_TOKEN | yes | Authentication to Kentik API | |
+  | KENTIK_API_URL | no | URL of Kentik API service | https://api.kentik.com/api/v5 |
+  | KENTIK_API_RETRIES  | no | Number of retries on transient failures | 3 |
+  | KENTIK_API_TIMEOUT | no | Timeout for requests to Kentik API | 60 seconds |
+  | DEFAULT_TTL| no | Default cache entry lifetime | 300 seconds |
+  | STATUS_POLL_PERIOD  | no | Interval for polling for completion of cache entries | 3 seconds |
+  | CACHE_PATH  | yes | Directory for storing cached content | |
+  | CACHE_MAINTENANCE_PERIOD  | no | Interval for periodic cache pruning | 60 seconds |
 
 ## Basic Operations
 ### Happy Path
