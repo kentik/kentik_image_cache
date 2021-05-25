@@ -10,7 +10,9 @@ TLS and eventual user authentication must be handled by external proxy (e.g. [Tr
 | end-point | method | operation | request data | response data |
 | :---------| :----- | :---------| :----------- | :------------ |
 | /requests  | POST | Initiate query request to Kentik API’s /query/topxchart end-point | **api_query:** [JSON object](https://kb.kentik.com/v0/Ec04.htm#Ec04-Query_API_Request_JSON) (passed to Kentik API without modification), **ttl:** (optional int) desired storage duration in seconds | **On success:** image ID, **On error:** JSON error message |
-| /images/{id}  | GET | Retrieve previously requested image | None | **On success:** Image data according to the format specified in the corresponding request, **On error:** Status code and error message returned by Kentik API |
+| /image/{id}  | GET | Retrieve previously requested image | None | **On success:** Image data according to the format specified in the corresponding request, **On error:** Status code and error message returned by Kentik API |
+| /info       | GET | Return information about cache content | None | JSON object |
+| /favicon.ico | GET | Return favicon | None | image/x-icon |
 
 ## Image Identifiers
 Unique image identifiers returned by the app are constructed as:  
@@ -53,7 +55,7 @@ On successful retrieval of the image from Kentik API, Image Cache:
 1) stores the image data in the pending entry
 2) marks the entry active
 
-On GET request to the _/images/<id>_ end-point, the Image Cache:
+On GET request to the _/image/<id>_ end-point, the Image Cache:
 1) attempts to locate the entry <id> in the cache
 ```
   if found
@@ -83,7 +85,7 @@ Cache initialization steps:
 ## Requirements
 - Python 3.8 or newer
 - FastAPI
-- kentik_api
+- kentik-api 0.2.0 (or newer)
 
 ## Installation
 _TDB_

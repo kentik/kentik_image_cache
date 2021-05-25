@@ -4,7 +4,7 @@ import os
 import subprocess
 
 # mypy: ignore-errors
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 class MypyCmd(distutils.cmd.Command):
@@ -33,9 +33,7 @@ class MypyCmd(distutils.cmd.Command):
             subprocess.check_call(cmd)
         except subprocess.CalledProcessError:
             self.announce(
-                "Command: {} returned error. Check if tests are not failing.".format(
-                    str(cmd)
-                ),
+                "Command: {} returned error. Check if tests are not failing.".format(str(cmd)),
                 level=distutils.log.INFO,
             )
 
@@ -50,12 +48,12 @@ setup(
     long_description="Application for caching of images rendered by the _/query/topxchart_ Kentik API method.",
     url="https://github.com/kentik/kentik_image_cache",
     license="Apache-2.0",
-    install_requires=["fastapi>=0.65.1", "kentik-api>=0.1.2"],
+    install_requires=["fastapi>=0.65.1", "kentik-api>=0.2.0"],
     setup_requires=["pytest-runner", "setuptools_scm"],
     tests_require=["httpretty", "pytest", "mypy"],
     packages=find_packages(),
     cmdclass={"mypy": MypyCmd},
     classifiers=[
-        "License :: OSI Approved :: Apache",
+        "License :: OSI Approved :: Apache Software License",
     ],
 )

@@ -4,10 +4,10 @@ participant "Image Cache" as Cache order 20
 participant "Kentik API" as Kentik order 30
 Client -> Cache: POST /requests body: **query2**
 Cache -> Cache: mark image **id2** as pending
-Cache -> Client: unique image URL (/images/id2)
+Cache -> Client: unique image id (id2)
 Cache -> Kentik: POST /topXchart body: **query2**
 Kentik -> Cache: <error response>
 Cache -> Cache: store error response as **id2**
-Client -> Cache: GET /images/id2
+Client -> Cache: GET /image/id2
 Cache -> Client: <error response for **query2**>
 @enduml

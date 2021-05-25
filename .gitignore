@@ -13,4 +13,4 @@ venv
 htmlcov
 dist
 .pytest_cache/
-tests/data/
+/.env

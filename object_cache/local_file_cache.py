@@ -25,9 +25,7 @@ class ObjectCache:
 
     def __init__(self, base_dir: Path) -> None:
         if not base_dir.is_dir():
-            raise RuntimeError(
-                f"Invalid cache base directory {base_dir}: not a directory"
-            )
+            raise RuntimeError(f"Invalid cache base directory {base_dir}: not a directory")
         d = base_dir.resolve()
         self._active_dir = base_dir.joinpath("active")
         self._pending_dir = base_dir.joinpath("pending")
@@ -65,9 +63,7 @@ class ObjectCache:
         log.debug("entry not found: %s", entry_id)
         return None
 
-    def create_entry(
-        self, entry_id: str, entry_type: CacheEntryType, data: Any
-    ) -> CreationStatus:
+    def create_entry(self, entry_id: str, entry_type: CacheEntryType, data: Any) -> CreationStatus:
         """
         Attempt to create new cache entry.
         If it already exists return CreationStatus.EXISTING,
@@ -84,14 +80,10 @@ class ObjectCache:
             )
             return CreationStatus.EXISTING
         else:
-            CacheEntry(
-                EntryStatus.PENDING, path=self._pending_dir.joinpath(entry_id)
-            ).write(entry_type, data)
+            CacheEntry(EntryStatus.PENDING, path=self._pending_dir.joinpath(entry_id)).write(entry_type, data)
             return CreationStatus.CREATED
 
-    def activate_entry(
-        self, entry_id: str, entry_type: CacheEntryType, data: Any
-    ) -> ActivationStatus:
+    def activate_entry(self, entry_id: str, entry_type: CacheEntryType, data: Any) -> ActivationStatus:
         """
         Move specified entry from pending to active directory and write provided data to it.
         If entry does not exist, return ActivationStatus.FAILED.
@@ -130,7 +122,7 @@ class ObjectCache:
                 log.debug("expired: %s", eid)
                 to_remove.append(e)
         for e in to_remove:
-            log.debug("removing %s", e)
+            log.info("removing %s", e)
             e.unlink()
         log.debug(
             "cache pruning complete: active: %d, pending: %d",
@@ -145,3 +137,13 @@ class ObjectCache:
     @property
     def pending_count(self):
         return len([e for e in self._pending_dir.iterdir()])
+
+    @property
+    def active_entries(self):
+        for f in self._active_dir.iterdir():
+            yield CacheEntry(handle=f.open("rb"), status=EntryStatus.ACTIVE)
+
+    @property
+    def pending_entries(self):
+        for f in self._pending_dir.iterdir():
+            yield CacheEntry(handle=f.open("rb"), status=EntryStatus.PENDING)

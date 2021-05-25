@@ -1,5 +1,5 @@
 aiofiles
-fastapi[all]
-kentik_api
-pydantic
-uvicorn[standard]
+fastapi[all]>=0.65.1
+kentik-api>=0.2.0
+pydantic>=1.8.2
+setuptools>=56.2.0

@@ -60,6 +60,10 @@ class CacheEntry:
             self._handle.close()
 
     @property
+    def uid(self):
+        return self._path.name
+
+    @property
     def type(self) -> CacheEntryType:
         return self._type
 
@@ -93,6 +97,4 @@ class CacheEntry:
             else:
                 n = f.write(data)
             f.close()
-            log.debug(
-                "entry: %s, type: %s stored %d  bytes", f.name, self._type.name, n
-            )
+            log.debug("entry: %s, type: %s stored %d  bytes", f.name, self._type.name, n)

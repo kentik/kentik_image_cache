@@ -23,8 +23,7 @@ jobs:
     - id: set-matrix
       run: echo "::set-output name=matrix::{\"python-version\":['3.8', '3.9']}"
 
-  # Static Analysis of the SDK and its code
-  # Stuff like linters, etc.
+  # Static Analysis and unit tests
   code-tests:
     needs: python-versions-setup
     runs-on: ubuntu-latest
