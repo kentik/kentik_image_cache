@@ -49,7 +49,7 @@ setup(
     url="https://github.com/kentik/kentik_image_cache",
     license="Apache-2.0",
     install_requires=["fastapi>=0.65.1", "kentik-api>=0.2.0"],
-    setup_requires=["pytest-runner", "setuptools_scm"],
+    setup_requires=["pytest-runner", "setuptools_scm", "wheel"],
     tests_require=["httpretty", "pytest", "mypy", "typer"],
     packages=find_packages(),
     cmdclass={"mypy": MypyCmd},

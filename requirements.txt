@@ -5,3 +5,4 @@ pydantic>=1.8.2
 requests>=2.25.1
 setuptools>=56.2.0
 typer>=0.3.2
+wheel>=0.36.2
