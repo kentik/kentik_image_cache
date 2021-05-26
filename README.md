@@ -88,8 +88,77 @@ Cache initialization steps:
 - kentik-api 0.2.0 (or newer)
 
 ## Installation
-_TDB_
 
-## Testing
-_TBD_
+### Deployment in Docker
+The bellow procedure assumes:
+- Unix/Linux-like operating system
+- Docker executed on the host on which the image is built
+
+#### Clone repo to local disk:
+`https://github.com/kentik/kentik_image_cache.git`
+
+#### Create docker image
+```
+cd kentik_image_cache
+docker build -t kentik_image_cache .
+```
+#### Create cache directory (to be mounted in the container)
+The directory should be located on filesystem with enough of disk space and must be readable and writeable
+to the user with whose identity Docker containers are executed.
+```
+mkdir -p /opt/kentik_image_cache
+```
+
+#### Start the docker container
+The bellow procedure passes Kentik authentication to the container via environment variables.
+- _<kentik_user_mail>_ has to be replaced with the e-mail registered with the Kentik user
+- _<kentik_api_token>_ has to be replaced with API token of that user.
+
+**Access to Kentik API must be allowed from the external IP address of the Docker container**.
+```
+docker run -d --name kentik_image_cache \
+    --env KT_AUTH_EMAIL=<kentik_user_mail> \
+    --env KT_AUTH_TOKEN=<kentik_api_token> \
+    -v /opt/kentik_image_cache:/cache -p 80:80 kentik_image_cache
+```
+
+### Local deployment for development
+The bellow procedure assumes:
+- Unix/Linux-like operating system
+- Python 3.8 or newer installed as `python3`
+
+#### Clone repo to local disk:
+`https://github.com/kentik/kentik_image_cache.git`
+
+#### Create virtual environment
+```
+cd kentik_image_cache
+python3 -v venv venv
+```
+
+#### Install dependencies
+```
+venv/bin/pip3 install -r requirements.txt
+```
+
+#### Create cache directory
+```
+mkdir /tmp/cache
+```
+
+#### Create environment file with Kentik credentials
+```
+echo "KT_AUTH_EMAIL=<kentik_user_mail>" > .env
+echo "KT_AUTH_TOKEN=<kentik_api_token>" >> .env
+echo "CACHE_PATH=/tmp/cache" >> .env
+```
+
+#### Start the server with debug messages enabled and in self-reload mode
+```
+DEBUG=1 uvicorn app.main:app --reload
+```
+
+#### Test access
+- API spec and tester: http://127.0.0.1:8000/docs
+- Cache content info:  http://127.0.0.1:8000/info
 

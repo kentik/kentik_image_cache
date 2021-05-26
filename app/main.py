@@ -195,10 +195,10 @@ def is_expired(image_id: str) -> bool:
 
 
 async def run_cache_pruning(c: ObjectCache, period: int):
-    log.info("Scheduling cache pruning (period: %d)", period)
+    log.info("Scheduling periodic cache pruning (period: %d)", period)
     while True:
-        c.prune(is_expired)
         await asyncio.sleep(period)
+        c.prune(is_expired)
 
 
 @app.post("/requests", response_model=ImageId, responses={400: {"model": ErrorResponse}})
@@ -293,10 +293,11 @@ def get_image(image_id: str):
 def entry_info(entry: CacheEntry) -> CacheEntryInfo:
     """Return CacheEntryInfo instance for given CacheEntry"""
     exp = expiration(entry.uid)
+    now = datetime.now(tz=timezone.utc)
     if exp is None:
         ts = "<invalid>"
     else:
-        ts = exp.isoformat()
+        ts = f'{exp.isoformat()} (remaining: {exp - now})'
     return CacheEntryInfo(id=entry.uid, type=entry.type.value, size=len(entry.data), expiration=ts)
 
 
@@ -322,4 +323,12 @@ async def get_favicon():
 
 @app.on_event("startup")
 async def startup_event():
+    log.info('Startup cache pruning')
+    cache.prune(is_expired)
+    log.info('Startup cache pruning complete')
+    # Restart requests for all remaining pending entries
+    for e in cache.pending_entries:
+        log.info('Restarting pending entry: %s', e.uid)
+        fetch_image(e.uid, json.loads(e.data.decode()))
+    # Start periodic cache pruning
     asyncio.create_task(run_cache_pruning(cache, settings.cache_maintenance_period))
