@@ -155,7 +155,7 @@ echo "CACHE_PATH=/tmp/cache" >> .env
 
 #### Start the server with debug messages enabled and in self-reload mode
 ```
-DEBUG=1 uvicorn app.main:app --reload
+DEBUG=1 venv/bin/uvicorn app.main:app --reload
 ```
 
 #### Test access
