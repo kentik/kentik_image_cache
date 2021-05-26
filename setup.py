@@ -50,7 +50,7 @@ setup(
     license="Apache-2.0",
     install_requires=["fastapi>=0.65.1", "kentik-api>=0.2.0"],
     setup_requires=["pytest-runner", "setuptools_scm"],
-    tests_require=["httpretty", "pytest", "mypy"],
+    tests_require=["httpretty", "pytest", "mypy", "typer"],
     packages=find_packages(),
     cmdclass={"mypy": MypyCmd},
     classifiers=[

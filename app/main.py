@@ -297,7 +297,7 @@ def entry_info(entry: CacheEntry) -> CacheEntryInfo:
     if exp is None:
         ts = "<invalid>"
     else:
-        ts = f'{exp.isoformat()} (remaining: {exp - now})'
+        ts = f"{exp.isoformat()} (remaining: {exp - now})"
     return CacheEntryInfo(id=entry.uid, type=entry.type.value, size=len(entry.data), expiration=ts)
 
 
@@ -323,12 +323,12 @@ async def get_favicon():
 
 @app.on_event("startup")
 async def startup_event():
-    log.info('Startup cache pruning')
+    log.info("Startup cache pruning")
     cache.prune(is_expired)
-    log.info('Startup cache pruning complete')
+    log.info("Startup cache pruning complete")
     # Restart requests for all remaining pending entries
     for e in cache.pending_entries:
-        log.info('Restarting pending entry: %s', e.uid)
+        log.info("Restarting pending entry: %s", e.uid)
         fetch_image(e.uid, json.loads(e.data.decode()))
     # Start periodic cache pruning
     asyncio.create_task(run_cache_pruning(cache, settings.cache_maintenance_period))

@@ -92,10 +92,12 @@ Cache initialization steps:
 ### Deployment in Docker
 The bellow procedure assumes:
 - Unix/Linux-like operating system
+- functional `git` installation
 - Docker executed on the host on which the image is built
+- User running the procedure has sufficient permissions, including communication with the docker server
 
 #### Clone repo to local disk:
-`https://github.com/kentik/kentik_image_cache.git`
+`git clone https://github.com/kentik/kentik_image_cache.git`
 
 #### Create docker image
 ```
@@ -107,6 +109,7 @@ The directory should be located on filesystem with enough of disk space and must
 to the user with whose identity Docker containers are executed.
 ```
 mkdir -p /opt/kentik_image_cache
+chown root:docker /opt/kentik_image_cache
 ```
 
 #### Start the docker container
@@ -122,18 +125,26 @@ docker run -d --name kentik_image_cache \
     -v /opt/kentik_image_cache:/cache -p 80:80 kentik_image_cache
 ```
 
+Credentials and other configuration information can be also provided via environment file:
+```
+echo "KT_AUTH_EMAIL=<kentik_user_mail>" > .env
+echo "KT_AUTH_TOKEN=<kentik_api_token>" >> .env
+docker run -d --name kentik_image_cache --env-file .env \
+           -v /opt/kentik_image_cache:/cache -p 80:80 kentik_image_cache
+```
 ### Local deployment for development
 The bellow procedure assumes:
 - Unix/Linux-like operating system
+- functional `git` installation
 - Python 3.8 or newer installed as `python3`
 
 #### Clone repo to local disk:
-`https://github.com/kentik/kentik_image_cache.git`
+`git clone https://github.com/kentik/kentik_image_cache.git`
 
 #### Create virtual environment
 ```
 cd kentik_image_cache
-python3 -v venv venv
+python3 -m venv venv
 ```
 
 #### Install dependencies
@@ -142,6 +153,7 @@ venv/bin/pip3 install -r requirements.txt
 ```
 
 #### Create cache directory
+_Note_: the cache directory **must not** be in the repo tree in order for the `uvicorn --reload` feature to work correctly.
 ```
 mkdir /tmp/cache
 ```
