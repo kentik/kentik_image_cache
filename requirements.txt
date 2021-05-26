@@ -1,6 +1,7 @@
 aiofiles
 fastapi[all]>=0.65.1
 kentik-api>=0.2.0
+mypy>=0.812
 pydantic>=1.8.2
 requests>=2.25.1
 setuptools>=56.2.0
