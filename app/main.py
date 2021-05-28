@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     kentik_api_url: str = "https://api.kentik.com/api/v5"
     kentik_api_retries: int = 3
     kentik_api_timeout: int = 60  # seconds
-    status_poll_period: int = 3  # seconds
+    entry_wait_timeout: int = kentik_api_retries * kentik_api_timeout + 5  # seconds
     default_ttl: int = 300  # seconds
     cache_path: str = "cache"
     cache_maintenance_period: int = 60  # seconds
@@ -85,7 +85,7 @@ class CacheInfo(BaseModel):
 
 
 # Create object cache
-cache = ObjectCache(Path(settings.cache_path).resolve())
+cache = ObjectCache(Path(settings.cache_path).resolve(), entry_wait_timeout=settings.entry_wait_timeout)
 # Create Kentik API client
 retry_strategy = deepcopy(RetryableSession.DEFAULT_RETRY_STRATEGY)
 retry_strategy.total = settings.kentik_api_retries
@@ -245,49 +245,49 @@ def get_image(image_id: str):
     """
 
     log.info("GET image %s", image_id)
-    ts = expiration(image_id)
-    if ts is None:
-        log.info("GET %s: invalid ID", image_id)
-        return JSONResponse(
-            content={"loc": image_id, "msg": "Invalid image ID", "type": "error"},
-            status_code=422,
-        )
-    if ts < datetime.now(timezone.utc):
-        log.info("GET %s: expired ts: %s", image_id, ts.isoformat())
+    if is_expired(image_id):
+        log.info("GET %s: entry is expired", image_id)
         return JSONResponse(
             content={"loc": image_id, "msg": "Image not found", "type": "error"},
             status_code=404,
         )
-    while True:
-        entry = cache.get_entry(image_id)
-        if entry is None:
+    cache.wait_for(image_id)
+    entry = cache.get_entry(image_id)
+    if entry is None:
+        return JSONResponse(
+            content={"loc": image_id, "msg": "Image not found", "type": "error"},
+            status_code=404,
+        )
+    if entry.status == EntryStatus.ACTIVE:
+        if entry.type == CacheEntryType.IMAGE:
+            img = pickle.loads(entry.data)
+            return Response(content=img.image_data, media_type=img_type_to_media(img.image_type))
+        if entry.type == CacheEntryType.ERROR_MSG:
+            d = json.loads(entry.data.decode())
             return JSONResponse(
-                content={"loc": image_id, "msg": "Image not found", "type": "error"},
-                status_code=404,
+                content={"loc": image_id, "msg": d["msgs"], "type": "Kentik API error"},
+                status_code=d["status_code"],
             )
-        if entry.status == EntryStatus.ACTIVE:
-            if entry.type == CacheEntryType.IMAGE:
-                img = pickle.loads(entry.data)
-                return Response(content=img.image_data, media_type=img_type_to_media(img.image_type))
-            if entry.type == CacheEntryType.ERROR_MSG:
-                d = json.loads(entry.data.decode())
-                return JSONResponse(
-                    content={"loc": image_id, "msg": d["msgs"], "type": "Kentik API error"},
-                    status_code=d["status_code"],
-                )
-        if entry.status == EntryStatus.PENDING:
-            log.debug("GET %s: still pending", image_id)
-            sleep(settings.status_poll_period)
-        else:
-            log.error("GET %s: unknown entry status: %s", image_id, entry.status.value)
-            return JSONResponse(
-                content={
-                    "loc": image_id,
-                    "msg": f"Internal error (unknown entry status: {entry.status.value})",
-                    "type": "error",
-                },
-                status_code=500,
-            )
+    if entry.status == EntryStatus.PENDING:
+        log.error("GET %s: got pending entry", image_id)
+        return JSONResponse(
+            content={
+                "loc": image_id,
+                "msg": f"Internal error (entry status: {entry.status.value})",
+                "type": "error",
+            },
+            status_code=500,
+        )
+    else:
+        log.error("GET %s: unknown entry status: %s", image_id, entry.status.value)
+        return JSONResponse(
+            content={
+                "loc": image_id,
+                "msg": f"Internal error (unknown entry status: {entry.status.value})",
+                "type": "error",
+            },
+            status_code=500,
+        )
 
 
 def entry_info(entry: CacheEntry) -> CacheEntryInfo:

@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
-from typing import Any, Callable, Optional
+from threading import Event
+from typing import Any, Callable, Dict, Optional
 
 from .cache_entry import CacheEntry, CacheEntryType
 from .types import ActivationStatus, CreationStatus, EntryStatus
@@ -23,7 +24,7 @@ class ObjectCache:
     The cache does not parse or use content of cached data.
     """
 
-    def __init__(self, base_dir: Path) -> None:
+    def __init__(self, base_dir: Path, entry_wait_timeout: int) -> None:
         if not base_dir.is_dir():
             raise RuntimeError(f"Invalid cache base directory {base_dir}: not a directory")
         d = base_dir.resolve()
@@ -31,12 +32,27 @@ class ObjectCache:
         self._pending_dir = base_dir.joinpath("pending")
         self._active_dir.mkdir(exist_ok=True)
         self._pending_dir.mkdir(exist_ok=True)
+        self._events: Dict[str, Event] = dict()
+        self._entry_wait_timeout = entry_wait_timeout
         log.debug("New ObjectCache: base_dir: %s", d)
         log.debug(
             "active: %d entries, pending: %d entries",
             self.active_count,
             self.pending_count,
         )
+
+    def wait_for(self, entry_id: str) -> None:
+        """
+        Wait for entry to become active
+        Execution of the calling thread blocks until the entry becomes active or until timeout
+        If the event object does not exist, the method returns immediately
+        """
+        try:
+            log.debug("Waiting for id: %s", entry_id)
+            self._events[entry_id].wait(self._entry_wait_timeout)
+            log.debug("Entry id: %s is active", entry_id)
+        except KeyError:
+            log.error("No event for id: %s", entry_id)
 
     def get_entry(self, entry_id: str) -> Optional[CacheEntry]:
         """
@@ -80,6 +96,7 @@ class ObjectCache:
             )
             return CreationStatus.EXISTING
         else:
+            self._events[entry_id] = Event()
             CacheEntry(EntryStatus.PENDING, path=self._pending_dir.joinpath(entry_id)).write(entry_type, data)
             return CreationStatus.CREATED
 
@@ -99,6 +116,7 @@ class ObjectCache:
         else:
             entry.write(entry_type, data)
             entry.rename(self._active_dir.joinpath(entry_id))
+            self._events[entry_id].set()
             return ActivationStatus.SUCCESS
 
     def prune(self, is_expired: Callable[[str], bool]):
@@ -123,6 +141,10 @@ class ObjectCache:
                 to_remove.append(e)
         for e in to_remove:
             log.info("removing %s", e)
+            try:
+                del self._events[e.name]
+            except KeyError as exc:
+                log.debug("Event was missing for %s", str(exc))
             e.unlink()
         log.debug(
             "cache pruning complete: active: %d, pending: %d",
