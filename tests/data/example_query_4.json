@@ -1,6 +1,5 @@
 {
-"api_query":
-  {
+  "api_query": {
     "queries": [
       {
         "bucket": "Left +Y Axis",
